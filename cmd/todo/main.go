@@ -9,15 +9,20 @@ import (
 )
 
 //=================================
-// IMPROVING THE LIST OUTPUT FORMAT
+// ENVIRONMENTAL VARIABLES
 //=================================
-// We can improove the output format by implementing a Stringer interaface to our List type.
-// this allow us to pass our type to any formating function that expects a string
+// environmental variables allow users to specify options in their shell configuration.
+// use the os.Getenv("TODO_FILENAME") to retrive the value of the variable knonw as TODO_FILENAME
 
-// > add a String() method to the List type in todo.go
+// > create a new environmental variable in Bash
+// $ export TODO_FILENAME=new-todo.json
 
-// hardcode the filename for now
-const todoFileName = "todo.json"
+// > run the command now to build a new json file.
+// $ go run main.go -task "New Task"
+// $ cat new-todo.json
+
+// INFO: Update from a constant to a variable
+var todoFileName = "todo.json"
 
 func main() {
 	flag.Usage = func() {
@@ -32,6 +37,11 @@ func main() {
 	list := flag.Bool("list", false, "List all ToDo items")
 	complete := flag.Int("complete", 0, "Item to be completed")
 	flag.Parse()
+
+	//INFO: check whether we have a environmental variable set. If so, set it as the value for the todoFileName var.
+	if os.Getenv("TODO_FILENAME") != "" {
+		todoFileName = os.Getenv("TODO_FILENAME")
+	}
 
 	// define a instance of a Todo List initialize in it's zero value
 	l := &todo.List{}
