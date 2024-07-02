@@ -8,38 +8,37 @@ import (
 	"github.com/dupakarovsky/todo"
 )
 
-//========================
-// RUNNING THE CLI
-//========================
-
-// run the CLI: /todo/cmd
-// $ go run main.go
-
-// The first run, without arguments shouldn't produce any results.
-// Add some arguments
-
-// $ go run main.go Add this to do item to the list
-
-// This will add generate a new JSON file with one item with this title.
-// If we run again the same command, the Task name will appern in the stdout
-
-// $ go run main.go
-// Add this to do item to the list
-
-//========================================
-// HANDLING MULTIPLE COMMAND LINE OPTIONS
-//========================================
+//=============================
+// DISPLAY COMMMAND LINE USAGE
+//=============================
 /*
-   Use the flag to pass multiple commands to the terminal
-   -list: bool. when passed will list all to-do items.
-   -task: string. when passed will include a string argument as a new ToDo
-   -complete: int. when passed will mark the item number as completed.
+   The flag package provides automatic information with the -h options
+
+   > Run the build command and than run the binary with the -h flag:
+   $ go build -o=./bin/todo ./cmd
+   $ cd /bin
+   $./todo -h
+
+    it also provides helpul output for invalid flags.
+    $ ./todo -test  // inform this flag is inavlid.
+
+    flag.Usage
+    ----------
+    It's a variable pointing to a function. We can use it to display custom information
+
 */
 
 // hardcode the filename for now
 const todoFileName = "todo.json"
 
 func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "%s tool. Developed by Dupakarovksy\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2024\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage Information:\n")
+		flag.PrintDefaults()
+	}
+
 	// Add a list of flags to be passed to the command line
 	task := flag.String("task", "", "Task to be included in the ToDo list")
 	list := flag.Bool("list", false, "List all ToDo items")
@@ -98,5 +97,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-// > update the test cases in main_test.go

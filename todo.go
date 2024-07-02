@@ -51,7 +51,7 @@ func (l *List) Complete(pos int) error {
 	ls := *l
 
 	// check whether the position passed is valid
-	if pos <= 0 || pos < len(ls) {
+	if pos <= 0 || pos > len(ls) {
 		return fmt.Errorf("item %d does not exist", pos)
 	}
 
@@ -101,21 +101,17 @@ func (l *List) Save(filename string) error {
 func (l *List) Get(filename string) error {
 
 	// try read the file from the os.
-	fmt.Println("--todo.Get: Performing ReadFile")
 	file, err := os.ReadFile(filename)
 	if err != nil {
 		switch {
 		// file didn't exist. Function returns nil to the caller.
 		case errors.Is(err, os.ErrNotExist):
-			fmt.Println("--todo.Get: File doesn't exist. Return nil to caller")
 			return nil
 			// some other unknown error
 		default:
-			fmt.Println("--todo.Get: unknown error")
 			return err
 		}
 	}
-	fmt.Printf("--todo.Get: File read. length:[ %d ] content: [ %s ]\n", len(file), string(file))
 
 	// check wether the file is empty
 	if len(file) == 0 {
@@ -123,6 +119,5 @@ func (l *List) Get(filename string) error {
 	}
 
 	// file read. // Unmarshal from JSON into the List slice.
-	fmt.Println("--todo.Get: Performing Unmarshal...")
 	return json.Unmarshal(file, &l)
 }
