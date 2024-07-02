@@ -40,7 +40,6 @@ func TestMain(m *testing.M) {
 	// construct the command to build the binary with with "go", with args: 'build', '-o'
 	// and the binary name we've give (eg.: go build -o todo.exe)
 	build := exec.Command("go", "build", "-o", binName)
-	fmt.Printf("--main_test.TestMain: Running build command: %s\n", build.String())
 
 	// try running the build command
 	if err := build.Run(); err != nil {
@@ -87,10 +86,8 @@ func TestTodoCLI(t *testing.T) {
 		// here we're splitting the 'task' string into multiple strings and passing them as arguments to the CLI binary
 		// (eg.: /mnt/dev/WebDev/go/powerclag/020_user_interaction/todo/cmd/todo test task number #1)
 		cmd := exec.Command(cmdPath, strings.Split(task, " ")...)
-		fmt.Printf("--main_test.TestTodoCLI/AddTask: Building cmd command: %s\n", cmd.String())
 
 		// run the command
-		fmt.Println("--main_test.TestTodoCLI/AddTask: Running cmd command...")
 		if err = cmd.Run(); err != nil {
 			t.Fatal(err)
 		}
@@ -101,12 +98,10 @@ func TestTodoCLI(t *testing.T) {
 		// build the command to run: path to the compiled binary without any arguments. all strings after 'todo' will be concatenated
 		// into
 		cmd := exec.Command(cmdPath)
-		fmt.Printf("--main_test.TestTodoCLI/ListTask: Building cmd command: %s\n", cmd.String())
 
 		// run the command and return the combined std output and stderr
 		// ERROR: This test will fail with all the Println in main.
 		out, err := cmd.CombinedOutput()
-		fmt.Println("--main_test.TestTodoCLI/ListTask: Running combined output")
 		if err != nil {
 			t.Fatal(err)
 		}
