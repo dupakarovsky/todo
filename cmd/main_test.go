@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -81,11 +80,12 @@ func TestTodoCLI(t *testing.T) {
 
 	// Create a subtest (adds a new task)
 	t.Run("AddNewTask", func(t *testing.T) {
-
 		// build a command to run: the path to our compiled binary CLI and the arguments we're passing.
 		// here we're splitting the 'task' string into multiple strings and passing them as arguments to the CLI binary
 		// (eg.: /mnt/dev/WebDev/go/powerclag/020_user_interaction/todo/cmd/todo test task number #1)
-		cmd := exec.Command(cmdPath, strings.Split(task, " ")...)
+
+		//INFO: pass the '-task' flag to the command to be executed
+		cmd := exec.Command(cmdPath, "-task", task)
 
 		// run the command
 		if err = cmd.Run(); err != nil {
@@ -97,10 +97,10 @@ func TestTodoCLI(t *testing.T) {
 	t.Run("ListTasks", func(t *testing.T) {
 		// build the command to run: path to the compiled binary without any arguments. all strings after 'todo' will be concatenated
 		// into
-		cmd := exec.Command(cmdPath)
+		// INFO: pass the '-list' flag to the command to be executed
+		cmd := exec.Command(cmdPath, "-list")
 
 		// run the command and return the combined std output and stderr
-		// ERROR: This test will fail with all the Println in main.
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Fatal(err)
@@ -112,5 +112,13 @@ func TestTodoCLI(t *testing.T) {
 			t.Errorf("expected %q; got %q instead\n", expected, string(out))
 		}
 	})
-
 }
+
+// ===============================
+// TRY THE TOOL WITH THE COMMANDS
+// ===============================
+
+// $ go run main.go // Invalid Option
+// $ go run main.go -list // Lists all Todos (if we have any)
+// $ go run main.go -task "First Todo item" // will create a JSON file / add a new Todo to the file
+// $ go run main.go -complete 1 // will update the first item in list.
