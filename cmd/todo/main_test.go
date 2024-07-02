@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -52,7 +53,7 @@ func TestMain(m *testing.M) {
 
 	// store the exit code the binary has returned
 	code := m.Run()
-	//
+
 	// clean up the binary file and .todo.json file
 	fmt.Println("Cleaning up..")
 	os.Remove(binName)
@@ -84,11 +85,37 @@ func TestTodoCLI(t *testing.T) {
 		// here we're splitting the 'task' string into multiple strings and passing them as arguments to the CLI binary
 		// (eg.: /mnt/dev/WebDev/go/powerclag/020_user_interaction/todo/cmd/todo test task number #1)
 
-		//INFO: pass the '-task' flag to the command to be executed
-		cmd := exec.Command(cmdPath, "-task", task)
+		//INFO: update the command to run with the '-add' flag instead. the task string will be passed first non flag argument
+		// to the command
+		cmd := exec.Command(cmdPath, "-add", task)
 
 		// run the command
 		if err = cmd.Run(); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	//INFO: AddNewTaskStdIN subtest will test for the case where the '-add' flag is passed, but no arguments. This will trigger
+	// the getTasks() function to read from the StdIn. the test case will use the cmd.StdinPipe() to read from the commands standard
+	// input and the io.WriteString will act as the user typing, by passing the task2 string to the cmdStdIn pipe
+	task2 := "test task number 2"
+	t.Run("AddNewTaskStdIN", func(t *testing.T) {
+		//build the command with only the '-add' flag, without any non-flag arguments.
+		cmd := exec.Command(cmdPath, "-add")
+
+		// starts a pipe connected to the command stdin when the command starts starts
+		cmdStdIn, err := cmd.StdinPipe()
+		if err != nil {
+			t.Fatal(err)
+		}
+		// io.WriteString will write the task2 string to the cmdStdIn pipe
+		io.WriteString(cmdStdIn, task2)
+
+		// close the stream after the string is written.
+		cmdStdIn.Close()
+
+		// run the command
+		if err := cmd.Run(); err != nil {
 			t.Fatal(err)
 		}
 	})
@@ -107,17 +134,28 @@ func TestTodoCLI(t *testing.T) {
 
 		// INFO: update the stdout expected output to match what will be displayed.
 		// perform an assertion on what to expect.
-		expected := fmt.Sprintf("[ ] 1: %s\n", task)
+		expected := fmt.Sprintf("[ ] 1: %s\n[ ] 2: %s\n", task, task2)
 		if expected != string(out) {
 			t.Errorf("expected %q; got %q instead\n", expected, string(out))
 		}
 	})
+
 }
 
 // ===============================
-// RETRY THE TOOL WITH THE COMMANDS
+// CLEAR
 // ===============================
 
-// $ go run main.go -list // Lists all Todos (if we have any)
-// $ go run main.go -task "First Task" // will create a JSON file / add a new Todo to the file /  [ ] 1: First Task
-// $ go run main.go -complete 1 // will update the first item in list. / [x] 1: First Task
+// > Clear the TODO_FILENAME environmental variable and remove the todo.json/new-todo.json file
+// $ unset TODO_FILENAME
+// $ rm new-todo.json
+
+// > Rebuild the binary
+// $ go build -o=./bin/todo ./cmd
+
+// > Run the app with some none flag arguments
+// $ ./todo -add Incluing item from Args
+// $ ./todo -list  // [ ] 1: Incluing item from Args
+
+// > Pipe a string from stdin into the command
+// $ echo 'This item comes from STDIN' | ./todo -add

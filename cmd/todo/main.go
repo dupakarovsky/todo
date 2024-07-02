@@ -1,30 +1,58 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/dupakarovsky/todo"
 )
 
 //=================================
-// ENVIRONMENTAL VARIABLES
+// CAPTURING INPUT FROM STDIN
 //=================================
-// environmental variables allow users to specify options in their shell configuration.
-// use the os.Getenv("TODO_FILENAME") to retrive the value of the variable knonw as TODO_FILENAME
+// The abbility to add new tasks via stdin allow your users to pipe new tasks from other command-line tools.
+// We'll use the 'bufio' package to read data form the stdin input stream.
 
-// > create a new environmental variable in Bash
-// $ export TODO_FILENAME=new-todo.json
+// > Create a helper furnction called 'getTasks()' that accepts an parameter of a type that implements the io.Reader interface
 
-// > run the command now to build a new json file.
-// $ go run main.go -task "New Task"
-// $ cat new-todo.json
-
-// INFO: Update from a constant to a variable
+// name of the json file that'll be created.
 var todoFileName = "todo.json"
 
+// getTask will acpet a first parameter that implements the io.Reader interface. Then a variadict string parameter to collect all
+// others into a slice.
+func getTask(r io.Reader, args ...string) (string, error) {
+
+	// checks whether we passed any arguments
+	if len(args) > 0 {
+		// arguments are provided. concatenate them into a string separeted by space and return it
+		return strings.Join(args, " "), nil
+	}
+
+	// no arguments are provided. Start scanning the stdin input
+	// instantiate a new Scanner to read data from the r (stdin)
+	scanner := bufio.NewScanner(r)
+
+	// scan a single line
+	scanner.Scan()
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	// check the length for the scanned line
+	if len(scanner.Text()) == 0 {
+		return "", fmt.Errorf("Task cannot be blank")
+	}
+	// return the string of the scanned line
+	return scanner.Text(), nil
+}
+
 func main() {
+
+	// the output below will be displayed when the ./todo -h is invoked.
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "%s tool. Developed by Dupakarovksy\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2024\n")
@@ -32,13 +60,14 @@ func main() {
 		flag.PrintDefaults()
 	}
 
+	//INFO: update the -task flag to -bool
 	// Add a list of flags to be passed to the command line
-	task := flag.String("task", "", "Task to be included in the ToDo list")
+	add := flag.Bool("add", false, "Add task to the ToDo list")
 	list := flag.Bool("list", false, "List all ToDo items")
 	complete := flag.Int("complete", 0, "Item to be completed")
 	flag.Parse()
 
-	//INFO: check whether we have a environmental variable set. If so, set it as the value for the todoFileName var.
+	// check whether we have a environmental variable set. If so, set it as the value for the todoFileName var.
 	if os.Getenv("TODO_FILENAME") != "" {
 		todoFileName = os.Getenv("TODO_FILENAME")
 	}
@@ -57,14 +86,10 @@ func main() {
 	// File doesn't exist or file was successfuly read:
 	// check if any arguments were passed to the command line
 	switch {
+
 	//  check for the case where the '-list' flag is passed
 	case *list:
-		// INFO: now we can replace the for-range loop with a call to Print(l)
 		// Pritnt(l) uses the default String() for the type, which in our case uses a for-range
-		// loop to consturct a formated output.
-		// ERROR: the main_test.ListTask should fail now, as we're chaning the output.
-		// > go there to correct it.
-
 		fmt.Print(l)
 
 		// check for the case where the '-complete' flag is passed
@@ -79,10 +104,20 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		// check for the case where the '-task' flag is passed
-	case *task != "":
-		// call the Add method to add the string as a new task  name
-		l.Add(*task)
+
+		//INFO: check for the case where the '-add' flag is passed
+	case *add:
+		// if true, well call the getTask() method with the os.Stdin (which implements io.Reader).
+		// for the variadic paramenter, pass the flag.Args() wich collects all non flag arguments passed to the command line.
+		t, err := getTask(os.Stdin, flag.Args()...)
+		if err != nil {
+			fmt.Fprint(os.Stderr, err)
+			os.Exit(1)
+		}
+		// call Add() with the string getTasks returns
+		l.Add(t)
+
+		//TODO: > update the main_test.AddNewTaks test and also to create a new test
 
 		// save the updated list on disk.
 		if err := l.Save(todoFileName); err != nil {
