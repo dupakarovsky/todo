@@ -7,23 +7,25 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/dupakarovsky/todo"
 )
 
 //=================================
-// CAPTURING INPUT FROM STDIN
+// EXERCISES
 //=================================
-// The abbility to add new tasks via stdin allow your users to pipe new tasks from other command-line tools.
-// We'll use the 'bufio' package to read data form the stdin input stream.
-
-// > Create a helper furnction called 'getTasks()' that accepts an parameter of a type that implements the io.Reader interface
+// > Implement a flag -del to delete an item from the list.
+// > Add another flag to add verbose output, showing information like date/time
+// > Add a flag to prevent displaying completed task.
+// > Update the custom usage function to include instructions on how to provide new tasks
+// > Add test cases for the other options (-complete, -delete).
 
 // name of the json file that'll be created.
 var todoFileName = "todo.json"
 
-// getTask will acpet a first parameter that implements the io.Reader interface. Then a variadict string parameter to collect all
-// others into a slice.
+// getTask will accept a first parameter that implements the io.Reader interface. Then a variadict string parameter to collect all
+// others arguments passd in into a slice.
 func getTask(r io.Reader, args ...string) (string, error) {
 
 	// checks whether we passed any arguments
@@ -57,14 +59,19 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "%s tool. Developed by Dupakarovksy\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2024\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage Information:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "To add a new task use the -add flag followed by the task's name:\n(e.g: ./todo -add My New Task)\n\n")
 		flag.PrintDefaults()
 	}
 
-	//INFO: update the -task flag to -bool
 	// Add a list of flags to be passed to the command line
 	add := flag.Bool("add", false, "Add task to the ToDo list")
 	list := flag.Bool("list", false, "List all ToDo items")
-	complete := flag.Int("complete", 0, "Item to be completed")
+	complete := flag.Int("complete", 0, "Mark item as completed")
+	// INFO: add falgs: -del, -verbose, -active
+	del := flag.Int("del", 0, "Delete a task from the ToDo list")
+	verbose := flag.Bool("verbose", false, "Display verbose output")
+	active := flag.Bool("active", false, "Display active tasks only")
+
 	flag.Parse()
 
 	// check whether we have a environmental variable set. If so, set it as the value for the todoFileName var.
@@ -87,12 +94,40 @@ func main() {
 	// check if any arguments were passed to the command line
 	switch {
 
-	//  check for the case where the '-list' flag is passed
+	// INFO: check case where the '-active' flag is passed
+	case *active:
+		output := ""
+		// add a prefix to be displayed
+		for idx, item := range *l {
+			// display only active tasks
+			if !item.Done {
+				prefix := "[ ] "
+				output += fmt.Sprintf("%s%d: %s\n", prefix, idx+1, item.Task)
+			}
+		}
+		fmt.Fprint(os.Stdout, output)
+
+	// INFO: check case where the '-verbose' flag is passed
+	case *verbose:
+		status := "Active"
+		output := ""
+		prefix := "[ ] "
+		for idx, item := range *l {
+			timeString := item.CreatedAt.Format(time.UnixDate)
+			if item.Done {
+				status = "Done"
+				prefix = "[x] "
+			}
+			output += fmt.Sprintf("%s%d: %s | Created: %s | Status: %s\n", prefix, idx+1, item.Task, timeString, status)
+		}
+		fmt.Fprint(os.Stdout, output)
+
+	// check for the case where the '-list' flag is passed
 	case *list:
-		// Pritnt(l) uses the default String() for the type, which in our case uses a for-range
+		// Print(l) uses the default String() for the type, which in our case uses a for-range
 		fmt.Print(l)
 
-		// check for the case where the '-complete' flag is passed
+		// check for the case where the '-complete' flag is passed with positive value
 	case *complete > 0:
 		// call the Complete() to update Done and CompletedAt fields
 		if err := l.Complete(*complete); err != nil {
@@ -105,7 +140,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		//INFO: check for the case where the '-add' flag is passed
+		// check for the case where the '-add' flag is passed
 	case *add:
 		// if true, well call the getTask() method with the os.Stdin (which implements io.Reader).
 		// for the variadic paramenter, pass the flag.Args() wich collects all non flag arguments passed to the command line.
@@ -117,13 +152,26 @@ func main() {
 		// call Add() with the string getTasks returns
 		l.Add(t)
 
-		//TODO: > update the main_test.AddNewTaks test and also to create a new test
-
 		// save the updated list on disk.
 		if err := l.Save(todoFileName); err != nil {
 			fmt.Fprint(os.Stderr, err)
 			os.Exit(1)
 		}
+
+		//INFO: check case where the '-del' flag is passed with a positive value
+	case *del > 0:
+		// calls the Delete() method with the pos of the -del value
+		if err := l.Delete(*del); err != nil {
+			fmt.Fprint(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		//INFO: save the updated on disk
+		if err := l.Save(todoFileName); err != nil {
+			fmt.Fprint(os.Stderr, err)
+			os.Exit(1)
+		}
+
 		// update the default case to output an error to stderr
 	default:
 		// Check for error during save.
