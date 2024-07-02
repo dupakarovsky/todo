@@ -11,27 +11,35 @@ import (
 	"github.com/dupakarovsky/todo"
 )
 
+// TestAdd will perform a test by adding a new 'item' entry to the 'List' slice
 func TestAdd(t *testing.T) {
+	fmt.Println("Starting TestAdd ...")
+
 	// declare a ToDo List in it's zero value
 	var l todo.List
-	fmt.Printf("l: %+v\n", l)
+	fmt.Printf("l [initial]: %+v\n", l)
 
 	// perform a call to Add passing the task name
 	taskName := "New Task"
 	l.Add(taskName)
-	fmt.Printf("l after Add: %+v\n", l)
+	fmt.Printf("l [after Add]: %+v\n", l)
 
 	exp := taskName
 	got := l[0].Task
 
-	// perform a check to see if the Add method was successful
+	// perform a check to see if the Add method was successful. Should have a task added.
 	if exp != got {
 		t.Errorf("expected %q, got %q instead", exp, got)
 	}
 
 }
 
+// TestComplete will perform a test to check wether the Done and CompletedAt properties of a task item have been
+// modified. It'll start by making a call to Add() to add a new entry to the 'List' and then calling Completed() to
+// modify the Done and completedAt fields.
 func TestComplete(t *testing.T) {
+	fmt.Println("Starting TestComplete ...")
+
 	// declare a ToDo List in it's zero value
 	var l todo.List
 
@@ -39,8 +47,7 @@ func TestComplete(t *testing.T) {
 	taskName := "New Task"
 	l.Add(taskName)
 
-	// Testing on the Add() method
-	// perform a check to see if the Add method was successful
+	// perform a check to see if the Add method was successful. Should have a new item entry on the List 'l'
 	if taskName != l[0].Task {
 		t.Errorf("expected %q, got %q instead", taskName, l[0].Task)
 	}
@@ -60,18 +67,21 @@ func TestComplete(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	fmt.Println("Starting TestDelete...")
+
 	// initialize a new List with it's Zero value
 	var l todo.List
 
 	// define a new slice of taskNames to be added with the Add method
 	tasks := []string{"Task 1", "Task 2", "Task 3"}
 
-	// range of the slice using Value Samantics passing each each element to the Add method
+	// range of the slice using Value Samantics passing each each element to be added
 	for _, task := range tasks {
+		// call Add() in each iteration
 		l.Add(task)
 	}
 
-	// perform a check wether the add was successful.
+	// perform a check wether the add was successful. Should have added 3 items
 	if l[0].Task != tasks[0] {
 		t.Errorf("expected %q; got %q instead", l[0].Task, tasks[0])
 	}
@@ -84,7 +94,7 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Expected list length %d; got %d instead", 2, len(l))
 	}
 
-	// perform a check on the Task name. index 1 on l should be Task 3
+	// perform a check on the Task name. index 1 of l should be Task 3
 	if l[1].Task != tasks[2] {
 		t.Errorf("Expected %q; got %q instead", tasks[2], l[1].Task)
 	}
@@ -101,7 +111,7 @@ func TestSaveGet(t *testing.T) {
 	taskName := "New Task"
 	l1.Add(taskName)
 
-	// perform a check to see if the Add method was successful
+	// perform a check to see if the Add method was successful. Should have added one item.
 	if taskName != l1[0].Task {
 		t.Errorf("expected %q, got %q instead", taskName, l1[0].Task)
 	}
