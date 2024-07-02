@@ -8,25 +8,13 @@ import (
 	"github.com/dupakarovsky/todo"
 )
 
-//=============================
-// DISPLAY COMMMAND LINE USAGE
-//=============================
-/*
-   The flag package provides automatic information with the -h options
+//=================================
+// IMPROVING THE LIST OUTPUT FORMAT
+//=================================
+// We can improove the output format by implementing a Stringer interaface to our List type.
+// this allow us to pass our type to any formating function that expects a string
 
-   > Run the build command and than run the binary with the -h flag:
-   $ go build -o=./bin/todo ./cmd
-   $ cd /bin
-   $./todo -h
-
-    it also provides helpul output for invalid flags.
-    $ ./todo -test  // inform this flag is inavlid.
-
-    flag.Usage
-    ----------
-    It's a variable pointing to a function. We can use it to display custom information
-
-*/
+// > add a String() method to the List type in todo.go
 
 // hardcode the filename for now
 const todoFileName = "todo.json"

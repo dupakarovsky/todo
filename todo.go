@@ -25,6 +25,22 @@ type item struct {
 // List represents a list of Todo items
 type List []item
 
+// String method will provide the List a method to return a formated string
+func (l *List) String() string {
+	formated := ""
+	// add a prefix to be displayed
+	for idx, item := range *l {
+		prefix := "[ ] "
+		if item.Done {
+			prefix = "[x] "
+		}
+		// update the format. willdispaly the prefix an order number and a Task name
+		// eg.: [] 1 Buy Stuff, [x] 2 Go Out
+		formated += fmt.Sprintf("%s%d: %s\n", prefix, idx+1, item.Task)
+	}
+	return formated
+}
+
 // Add will add a new ToDo element to the List slice
 func (l *List) Add(taskName string) {
 
