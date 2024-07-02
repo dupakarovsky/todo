@@ -49,12 +49,14 @@ func main() {
 	switch {
 	//  check for the case where the '-list' flag is passed
 	case *list:
-		for _, item := range *l {
-			// list all todo elements in the List which are NOT Done
-			if !item.Done {
-				fmt.Println(item.Task)
-			}
-		}
+		// INFO: now we can replace the for-range loop with a call to Print(l)
+		// Pritnt(l) uses the default String() for the type, which in our case uses a for-range
+		// loop to consturct a formated output.
+		// ERROR: the main_test.ListTask should fail now, as we're chaning the output.
+		// > go there to correct it.
+
+		fmt.Print(l)
+
 		// check for the case where the '-complete' flag is passed
 	case *complete > 0:
 		// call the Complete() to update Done and CompletedAt fields

@@ -97,7 +97,6 @@ func TestTodoCLI(t *testing.T) {
 	t.Run("ListTasks", func(t *testing.T) {
 		// build the command to run: path to the compiled binary without any arguments. all strings after 'todo' will be concatenated
 		// into
-		// INFO: pass the '-list' flag to the command to be executed
 		cmd := exec.Command(cmdPath, "-list")
 
 		// run the command and return the combined std output and stderr
@@ -106,8 +105,9 @@ func TestTodoCLI(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// INFO: update the stdout expected output to match what will be displayed.
 		// perform an assertion on what to expect.
-		expected := task + "\n"
+		expected := fmt.Sprintf("[ ] 1: %s\n", task)
 		if expected != string(out) {
 			t.Errorf("expected %q; got %q instead\n", expected, string(out))
 		}
@@ -115,10 +115,9 @@ func TestTodoCLI(t *testing.T) {
 }
 
 // ===============================
-// TRY THE TOOL WITH THE COMMANDS
+// RETRY THE TOOL WITH THE COMMANDS
 // ===============================
 
-// $ go run main.go // Invalid Option
 // $ go run main.go -list // Lists all Todos (if we have any)
-// $ go run main.go -task "First Todo item" // will create a JSON file / add a new Todo to the file
-// $ go run main.go -complete 1 // will update the first item in list.
+// $ go run main.go -task "First Task" // will create a JSON file / add a new Todo to the file /  [ ] 1: First Task
+// $ go run main.go -complete 1 // will update the first item in list. / [x] 1: First Task
