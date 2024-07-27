@@ -34,7 +34,7 @@ func (l *List) String() string {
 		if item.Done {
 			prefix = "[x] "
 		}
-		// update the format. willdispaly the prefix an order number and a Task name
+		// update the format. will dispaly the prefix an order number and a Task name
 		// eg.: [] 1 Buy Stuff, [x] 2 Go Out
 		formated += fmt.Sprintf("%s%d: %s\n", prefix, idx+1, item.Task)
 	}
